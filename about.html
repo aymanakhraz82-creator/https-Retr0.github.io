@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>About InvoiceKit — Free, Private Invoicing for Freelancers</title>
+<meta name="description" content="InvoiceKit is a free browser-based invoice generator built for freelancers. Learn how it works, why there is no sign-up, and what it does with your data.">
+<link rel="canonical" href="https://yourusername.github.io/invoice-generator/about.html">
+<meta name="theme-color" content="#4338ca">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="InvoiceKit">
+<meta property="og:title" content="About InvoiceKit — Free, Private Invoicing for Freelancers">
+<meta property="og:description" content="InvoiceKit is a free browser-based invoice generator built for freelancers. Learn how it works, why there is no sign-up, and what it does with your data.">
+<meta property="og:url" content="https://yourusername.github.io/invoice-generator/about.html">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="About InvoiceKit — Free, Private Invoicing for Freelancers">
+<meta name="twitter:description" content="A free, private, browser-based invoice generator for freelancers. No sign-up, no backend, no watermark.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234338ca'/%3E%3Cpath d='M20 16h24v32l-6-4-6 4-6-4-6 4z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header no-print">
+  <div class="container header-inner">
+    <a class="brand" href="index.html">
+      <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="currentColor"/><path d="M7 6h10v12l-2.5-1.5L12 18l-2.5-1.5L7 18V6Z" fill="#fff"/></svg>
+      <span>InvoiceKit</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="index.html#generator">Generator</a>
+      <a href="index.html#guide">Guide</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="container page-head">
+    <h1>About InvoiceKit</h1>
+    <p>A small, fast invoice generator for people who work for themselves. No account, no subscription, no invoice watermark.</p>
+  </div>
+
+  <div class="container page-body">
+    <div class="card prose">
+      <h2>Why this exists</h2>
+      <p>Invoicing should take five minutes. Yet most freelancers end up choosing between a spreadsheet template that breaks the moment tax is involved, a paid tool with a free plan that caps you at three invoices, or a full accounting suite that wants your bank login before it will print a PDF.</p>
+      <p>InvoiceKit is the opposite: one page, one form, one preview. You type, the invoice appears, you download it. There is no onboarding tour, no upsell modal and no email verification. It works on a phone during a commute and on a laptop at a kitchen table.</p>
+
+      <h2>How it works</h2>
+      <p>The whole application is a single HTML page with a stylesheet and a small JavaScript file. Calculations run locally in your browser: quantity times rate, subtotal, discount, tax, total. The preview is the same markup that gets handed to the PDF library, so what you see is what you export. Printing uses your browser's own print dialog, which also gives you "Save as PDF" as a fallback.</p>
+      <p>Your last-used details — business name, client, invoice number, currency, tax rate, notes and logo — are stored in your browser's <code>localStorage</code>. That means the form is still filled in when you come back tomorrow. It also means the data is tied to that browser and that device. Clearing site data, using private browsing, or switching computers will start you from a blank invoice.</p>
+
+      <h2>Privacy by default</h2>
+      <p>There is no backend and no database. Invoice details and logos are never transmitted to us, because there is nowhere for them to go. The only network requests the page makes are for the stylesheet, the script and the PDF library. Advertising and affiliate partners are described in the <a href="privacy.html">privacy policy</a>.</p>
+
+      <h2>Who it is for</h2>
+      <p>Designers, developers, writers, photographers, consultants, tutors, translators, tradespeople — anyone who sends a handful of invoices a month and would rather not pay for software to do it. It handles multiple currencies, percentage tax, fixed discounts and itemised work, which covers the vast majority of freelance billing.</p>
+
+      <h2>What it is not</h2>
+      <p>InvoiceKit is not accounting software. It does not store your invoices, track payments, chase late clients or file taxes. It does not provide legal or tax advice, and tax rules differ by country — check with a professional before relying on any template. If you need bookkeeping, the <a href="index.html#recommended">recommended tools</a> section lists options.</p>
+
+      <h2>Keeping it free</h2>
+      <p>The site is supported by advertising and by clearly labelled affiliate links. Sponsored placements always carry a "Sponsored" label, and affiliate links are marked with <code>rel="sponsored"</code>. You never pay more by using them.</p>
+
+      <p><a class="btn btn-primary" href="index.html#generator">Create an invoice</a></p>
+    </div>
+  </div>
+</main>
+
+<footer class="site-footer no-print">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <a class="brand" href="index.html">
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="currentColor"/><path d="M7 6h10v12l-2.5-1.5L12 18l-2.5-1.5L7 18V6Z" fill="#fff"/></svg>
+        <span>InvoiceKit</span>
+      </a>
+      <p>Free, private invoicing for freelancers. Made to be fast and to stay out of your way.</p>
+    </div>
+    <nav class="footer-nav" aria-label="Footer navigation">
+      <a href="index.html#generator">Invoice generator</a>
+      <a href="index.html#guide">How to create an invoice</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="about.html">About</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+  <div class="container footer-legal">
+    <p class="affiliate-disclosure">Affiliate disclosure: some links on this site are affiliate links. If you sign up or buy through them, we may earn a commission at no extra cost to you. Sponsored placements are labelled "Sponsored".</p>
+    <p>&copy; <span id="year">2026</span> InvoiceKit. Not legal or tax advice.</p>
+  </div>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Free Invoice Generator — Create &amp; Download PDF Invoices</title>
+<meta name="description" content="Create a professional invoice free in your browser. Add line items, tax, discount and a logo, then download a PDF or print. No sign-up, no watermark.">
+<link rel="canonical" href="https://yourusername.github.io/invoice-generator/">
+<meta name="theme-color" content="#4338ca">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="InvoiceKit">
+<meta property="og:title" content="Free Invoice Generator — Create &amp; Download PDF Invoices">
+<meta property="og:description" content="Create a professional invoice free in your browser. Add line items, tax, discount and a logo, then download a PDF or print. No sign-up, no watermark.">
+<meta property="og:url" content="https://yourusername.github.io/invoice-generator/">
+<meta property="og:locale" content="en_US">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Free Invoice Generator — Create &amp; Download PDF Invoices">
+<meta name="twitter:description" content="Create a professional invoice free in your browser. Add line items, tax, discount and a logo, then download a PDF or print. No sign-up, no watermark.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234338ca'/%3E%3Cpath d='M20 16h24v32l-6-4-6 4-6-4-6 4z' fill='%23fff'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="site-header no-print">
+  <div class="container header-inner">
+    <a class="brand" href="index.html">
+      <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="currentColor"/><path d="M7 6h10v12l-2.5-1.5L12 18l-2.5-1.5L7 18V6Z" fill="#fff"/></svg>
+      <span>InvoiceKit</span>
+    </a>
+    <nav class="site-nav" aria-label="Main navigation">
+      <a href="index.html#generator">Generator</a>
+      <a href="index.html#guide">Guide</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="about.html">About</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<!-- AD SLOT: paste AdSense code here -->
+<aside class="ad-slot no-print" aria-label="Advertisement">
+  <span>Advertisement</span>
+</aside>
+
+<main id="main">
+
+  <section class="hero container no-print">
+    <p class="eyebrow">Free forever · No sign-up</p>
+    <h1>Free Invoice Generator</h1>
+    <p class="lead">Create a clean, professional invoice in minutes. Fill in the form, watch the preview update, then download a PDF or print it. Everything runs in your browser — your details never leave your device.</p>
+  </section>
+
+  <section id="generator" class="container section" aria-labelledby="generator-title">
+    <h2 id="generator-title" class="visually-hidden">Invoice generator</h2>
+
+    <div class="tool-grid">
+
+      <form id="invoice-form" class="card tool-form no-print" novalidate>
+        <fieldset>
+          <legend>Your business</legend>
+          <div class="field">
+            <label for="business-name">Your name or business</label>
+            <input id="business-name" name="businessName" type="text" autocomplete="organization" placeholder="Alex Rivera Studio">
+          </div>
+          <div class="logo-row">
+            <div class="logo-thumb" id="logo-thumb" aria-hidden="true"><span>Logo</span></div>
+            <div class="logo-actions">
+              <label class="btn btn-secondary btn-sm" for="logo-input">Upload logo</label>
+              <input id="logo-input" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp">
+              <button type="button" class="btn btn-ghost btn-sm" id="remove-logo" hidden>Remove</button>
+            </div>
+          </div>
+          <p class="hint">Optional. JPG, PNG or WebP up to 2&nbsp;MB. The image is resized in your browser.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Invoice details</legend>
+          <div class="field">
+            <label for="invoice-number">Invoice number</label>
+            <input id="invoice-number" name="invoiceNumber" type="text" placeholder="INV-2026-0001">
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label for="issue-date">Issue date</label>
+              <input id="issue-date" name="issueDate" type="date">
+            </div>
+            <div class="field">
+              <label for="due-date">Due date</label>
+              <input id="due-date" name="dueDate" type="date">
+            </div>
+          </div>
+          <div class="field">
+            <label for="currency">Currency</label>
+            <select id="currency" name="currency">
+              <option value="USD">USD — US Dollar</option>
+              <option value="EUR">EUR — Euro</option>
+              <option value="GBP">GBP — British Pound</option>
+              <option value="MAD">MAD — Moroccan Dirham</option>
+              <option value="CAD">CAD — Canadian Dollar</option>
+              <option value="AUD">AUD — Australian Dollar</option>
+              <option value="CHF">CHF — Swiss Franc</option>
+              <option value="SEK">SEK — Swedish Krona</option>
+              <option value="NOK">NOK — Norwegian Krone</option>
+              <option value="DKK">DKK — Danish Krone</option>
+              <option value="PLN">PLN — Polish Zloty</option>
+              <option value="INR">INR — Indian Rupee</option>
+              <option value="JPY">JPY — Japanese Yen</option>
+              <option value="CNY">CNY — Chinese Yuan</option>
+              <option value="SGD">SGD — Singapore Dollar</option>
+              <option value="AED">AED — UAE Dirham</option>
+              <option value="SAR">SAR — Saudi Riyal</option>
+              <option value="ZAR">ZAR — South African Rand</option>
+              <option value="NGN">NGN — Nigerian Naira</option>
+              <option value="KES">KES — Kenyan Shilling</option>
+              <option value="BRL">BRL — Brazilian Real</option>
+              <option value="MXN">MXN — Mexican Peso</option>
+              <option value="TRY">TRY — Turkish Lira</option>
+            </select>
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Bill to</legend>
+          <div class="field">
+            <label for="client-name">Client name</label>
+            <input id="client-name" name="clientName" type="text" autocomplete="off" placeholder="Northwind Coffee Co.">
+          </div>
+        </fieldset>
+
+        <fieldset>
+          <legend>Line items</legend>
+          <div id="items" class="items"></div>
+          <button type="button" class="btn btn-secondary btn-sm" id="add-item">+ Add line item</button>
+        </fieldset>
+
+        <fieldset>
+          <legend>Tax &amp; discount</legend>
+          <div class="field-row">
+            <div class="field">
+              <label for="tax-rate">Tax rate (%)</label>
+              <input id="tax-rate" name="taxRate" type="number" min="0" max="100" step="0.01" value="0" inputmode="decimal">
+            </div>
+            <div class="field">
+              <label for="discount">Discount (<span id="discount-currency">USD</span>)</label>
+              <input id="discount" name="discount" type="number" min="0" step="0.01" value="0" inputmode="decimal">
+            </div>
+          </div>
+          <p class="hint">The discount is subtracted from the subtotal before tax is applied.</p>
+        </fieldset>
+
+        <fieldset>
+          <legend>Notes</legend>
+          <div class="field">
+            <label for="notes">Payment details or a thank-you note</label>
+            <textarea id="notes" name="notes" rows="3" placeholder="Payment by bank transfer to IBAN …&#10;Please include the invoice number as a reference."></textarea>
+          </div>
+        </fieldset>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-primary" id="download-pdf">Download PDF</button>
+          <button type="button" class="btn btn-secondary" id="print-invoice">Print</button>
+          <button type="button" class="btn btn-ghost" id="reset-form">Reset</button>
+        </div>
+        <p class="hint" id="save-status" aria-live="polite">Your draft is saved in this browser only.</p>
+      </form>
+
+      <div class="preview-panel">
+        <div class="preview-head no-print">
+          <h2>Live preview</h2>
+          <span class="pill">A4</span>
+        </div>
+        <div id="invoice" class="invoice">
+          <div class="invoice-top">
+            <div class="invoice-brand">
+              <div class="invoice-logo-wrap" id="invoice-logo-wrap" hidden>
+                <img id="invoice-logo" class="invoice-logo" alt="Business logo">
+              </div>
+              <p class="invoice-business" id="preview-business">Your Business</p>
+            </div>
+            <div class="invoice-meta">
+              <p class="invoice-title">Invoice</p>
+              <dl>
+                <div><dt>Number</dt><dd id="preview-number">INV-2026-0001</dd></div>
+                <div><dt>Issued</dt><dd id="preview-issue">—</dd></div>
+                <div><dt>Due</dt><dd id="preview-due">—</dd></div>
+              </dl>
+            </div>
+          </div>
+
+          <div class="invoice-parties">
+            <div>
+              <p class="invoice-label">Billed to</p>
+              <p class="invoice-client" id="preview-client">Client name</p>
+            </div>
+            <div class="invoice-amount-box">
+              <p class="invoice-label">Amount due</p>
+              <p class="invoice-amount" id="preview-total-top">$0.00</p>
+            </div>
+          </div>
+
+          <table class="invoice-table">
+            <thead>
+              <tr>
+                <th scope="col">Description</th>
+                <th scope="col" class="num">Qty</th>
+                <th scope="col" class="num">Rate</th>
+                <th scope="col" class="num">Amount</th>
+              </tr>
+            </thead>
+            <tbody id="preview-items"></tbody>
+          </table>
+
+          <div class="invoice-summary">
+            <div class="invoice-totals">
+              <div class="total-row"><span>Subtotal</span><span id="preview-subtotal">$0.00</span></div>
+              <div class="total-row" id="preview-discount-row" hidden><span>Discount</span><span id="preview-discount">-$0.00</span></div>
+              <div class="total-row"><span id="preview-tax-label">Tax</span><span id="preview-tax">$0.00</span></div>
+              <div class="total-row total-row-grand"><span>Total</span><span id="preview-total">$0.00</span></div>
+            </div>
+          </div>
+
+          <div class="invoice-note-wrap" id="preview-notes-wrap" hidden>
+            <p class="invoice-label">Notes</p>
+            <p class="invoice-note" id="preview-notes"></p>
+          </div>
+
+          <p class="invoice-foot">Thank you for your business.</p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- AD SLOT: paste AdSense code here -->
+  <aside class="ad-slot no-print" aria-label="Advertisement">
+    <span>Advertisement</span>
+  </aside>
+
+  <section class="container section no-print" id="recommended" aria-labelledby="recommended-title">
+    <h2 id="recommended-title">Recommended for freelancers</h2>
+    <p class="section-sub">Tools that make invoicing, getting paid and bookkeeping easier. These are paid placements — see our <a href="privacy.html#affiliates">affiliate disclosure</a>.</p>
+    <div class="sponsored-grid">
+      <a class="sponsored-card" href="AFFILIATE_LINK_1" target="_blank" rel="sponsored nofollow noopener">
+        <span class="sponsored-badge">Sponsored</span>
+        <h3>Get paid from international clients</h3>
+        <p>Receive USD, EUR and GBP into a local account, with transparent conversion fees and no hidden charges.</p>
+        <span class="sponsored-cta">Compare transfer options →</span>
+      </a>
+      <a class="sponsored-card" href="AFFILIATE_LINK_2" target="_blank" rel="sponsored nofollow noopener">
+        <span class="sponsored-badge">Sponsored</span>
+        <h3>Accounting software for freelancers</h3>
+        <p>Track income and expenses, reconcile bank feeds and generate tax-ready reports without a spreadsheet.</p>
+        <span class="sponsored-cta">See plans →</span>
+      </a>
+      <a class="sponsored-card" href="AFFILIATE_LINK_3" target="_blank" rel="sponsored nofollow noopener">
+        <span class="sponsored-badge">Sponsored</span>
+        <h3>Find freelance clients</h3>
+        <p>Create a profile, browse vetted projects and get matched with clients who are ready to hire.</p>
+        <span class="sponsored-cta">Browse projects →</span>
+      </a>
+    </div>
+  </section>
+
+  <section class="container section no-print" id="guide">
+    <div class="prose card">
+      <h2>How to create an invoice</h2>
+      <p>An invoice does more than ask for money. It is the record that ties a piece of work to a payment, and it is the document a client's bookkeeper, your accountant and — if things go wrong — a court will look at. A good invoice is short, specific and impossible to misread. The guide below walks through the same steps as the generator above, in the order that makes an invoice easiest to check.</p>
+
+      <h3>1. Start with your business details</h3>
+      <p>Use the exact name your client knows you by, whether that is your own name or a registered company name. If you have a logo, upload it: a branded invoice looks more legitimate and is harder to mistake for spam. Keep the same name and logo on every invoice so that a client scrolling through their inbox recognises yours immediately. If you trade under a different legal name than your brand, put the legal name somewhere on the document as well.</p>
+
+      <h3>2. Number every invoice</h3>
+      <p>An invoice number is what makes an invoice traceable. Use a simple sequence such as INV-2026-0001, INV-2026-0002 and so on, and never reuse a number, even if you void an invoice. Sequential numbering makes it easy to prove you have billed for every project, to match payments to invoices, and to answer the question "did we ever receive that invoice?" months later. This tool starts you with a sensible default, but you can type any format you already use.</p>
+
+      <h3>3. Set a clear issue date and due date</h3>
+      <p>The issue date is the day you send the invoice. The due date is the day you expect to be paid, and it should never be left implicit. Common terms are 14 or 30 days from issue, but check what you agreed in your contract — "Net 30" means the clock starts on the issue date. A specific due date is far more effective than "payment on receipt", because both sides can see exactly when the invoice becomes overdue.</p>
+
+      <h3>4. Describe each line item specifically</h3>
+      <p>Vague lines like "services" or "consulting" invite questions and delay payment. Instead, describe the deliverable: "Homepage design — wireframe and high-fidelity mockup", with a quantity of 1 and the agreed rate. If you bill hourly, the quantity is the number of hours and the rate is your hourly rate. For fixed-price projects, split the work into milestones so the client can see what each payment covers. The line total is calculated for you as you type.</p>
+
+      <h3>5. Choose the currency your client pays in</h3>
+      <p>Bill in the currency you agreed in the contract, which is usually the client's currency for international work. Mixing currencies across invoices creates reconciliation headaches and can cost you money in conversion. If you are paid in a different currency than you bank in, decide in advance who covers the transfer fee and mention it in the notes so there are no surprises when the payment lands.</p>
+
+      <h3>6. Apply tax and discounts correctly</h3>
+      <p>Enter your tax rate as a percentage — for example 20 for VAT or 10 for a local sales tax — and the generator applies it after any discount, which is the usual convention. A discount is entered as an amount in the invoice currency so the client sees precisely what they saved. Tax rules vary by country and by whether your client is a business or a consumer, so confirm the correct treatment with your accountant rather than guessing.</p>
+
+      <h3>7. Add payment instructions</h3>
+      <p>The notes field is the best place for bank details, a payment link, the reference to quote, and your late-payment policy. Anything that helps the client pay in one step reduces the chance of a follow-up email. Keep it short: two or three lines is usually enough, and never put sensitive information such as a card number in the notes.</p>
+
+      <h3>8. Download the PDF and send it</h3>
+      <p>PDF is the standard for invoices because it preserves the layout on any device and cannot be casually edited. Download the file, give it a clear name such as INV-2026-0001-northwind.pdf, and attach it to an email with a short message stating the amount and the due date. Save a copy for your records. If the due date passes, send a polite reminder with the invoice attached again rather than assuming it was lost.</p>
+
+      <h3>What every invoice should include</h3>
+      <ul>
+        <li>Your name or business name, and your logo if you have one</li>
+        <li>The client's name and, ideally, their billing address</li>
+        <li>A unique, sequential invoice number</li>
+        <li>The issue date and a specific due date</li>
+        <li>An itemised description of the work, with quantity and rate</li>
+        <li>The subtotal, any discount, the tax amount and the total due</li>
+        <li>The currency, written as a code such as USD or EUR</li>
+        <li>Payment instructions and a reference to quote</li>
+      </ul>
+
+      <h3>Common invoice mistakes to avoid</h3>
+      <p>The most frequent problems are missing invoice numbers, missing due dates, arithmetic errors and unclear descriptions. A missing currency is surprisingly common on international invoices and can delay payment while the client asks which dollars you meant. Sending an invoice as a screenshot or an editable document is another risk: the client may not be able to file it, and it is easy to alter. Finally, keep a copy of everything you send. A simple folder organised by year and invoice number is enough, and it will save you hours at tax time.</p>
+
+      <p>With those habits in place, invoicing becomes a five-minute task instead of a monthly chore. Fill in the form above, download the PDF, and get back to the work you are actually paid for.</p>
+    </div>
+  </section>
+
+  <section class="container section no-print" id="faq">
+    <h2>Frequently asked questions</h2>
+    <div class="faq">
+      <details>
+        <summary>Is this invoice generator really free?</summary>
+        <p>Yes. Every feature — including the PDF download, logo upload and unlimited invoices — is free, with no account and no watermark on your document. The site is supported by advertising and clearly labelled affiliate links.</p>
+      </details>
+      <details>
+        <summary>Do I need to create an account or install anything?</summary>
+        <p>No. The generator is a single web page that works in any modern browser on desktop, tablet or phone. There is no sign-up, no email required and nothing to install.</p>
+      </details>
+      <details>
+        <summary>Are my invoice details uploaded to a server?</summary>
+        <p>No. All calculations, the PDF export and the autosave happen inside your browser. Your business details, client names and logo stay on your device, stored in your browser's local storage. Clearing your browser data removes the saved draft.</p>
+      </details>
+      <details>
+        <summary>Can I invoice international clients in different currencies?</summary>
+        <p>Yes. Choose from 23 currencies including USD, EUR, GBP and MAD. The currency symbol and number formatting update in the live preview, and the totals are carried into the PDF. Amounts are not converted — you invoice in the currency you select.</p>
+      </details>
+      <details>
+        <summary>How are tax and discounts calculated?</summary>
+        <p>The subtotal is the sum of quantity × rate for every line item. An optional discount amount is subtracted from that subtotal, then the tax rate is applied to the discounted amount. The preview shows each step, and the total is what appears as the amount due.</p>
+      </details>
+      <details>
+        <summary>Is a PDF invoice legally valid?</summary>
+        <p>In most countries a clear, itemised PDF invoice is accepted for tax and accounting purposes, but the requirements vary. Some jurisdictions require a tax identification number, a registered address or specific wording on the document. Check the rules where you are based, or ask your accountant, before relying on any template.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="container section no-print" id="support" aria-labelledby="support-title">
+    <div class="card donation">
+      <h2 id="support-title">Support InvoiceKit</h2>
+      <p>InvoiceKit is free and has no ads-free premium tier. If it saved you time, a small donation keeps the site online and ad-light.</p>
+      <div class="donation-actions">
+        <a class="btn btn-primary" href="https://www.paypal.com/donate/?hosted_button_id=YOUR_BUTTON_ID" target="_blank" rel="noopener">Donate via PayPal</a>
+        <a class="btn btn-secondary" href="https://buymeacoffee.com/yourname" target="_blank" rel="noopener">Buy me a coffee</a>
+      </div>
+      <p class="hint">Donations are processed by the provider you choose. InvoiceKit never sees your payment details.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- AD SLOT: paste AdSense code here -->
+<aside class="ad-slot no-print" aria-label="Advertisement">
+  <span>Advertisement</span>
+</aside>
+
+<footer class="site-footer no-print">
+  <div class="container footer-inner">
+    <div class="footer-brand">
+      <a class="brand" href="index.html">
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><rect width="24" height="24" rx="6" fill="currentColor"/><path d="M7 6h10v12l-2.5-1.5L12 18l-2.5-1.5L7 18V6Z" fill="#fff"/></svg>
+        <span>InvoiceKit</span>
+      </a>
+      <p>Free, private invoicing for freelancers. Made to be fast and to stay out of your way.</p>
+    </div>
+    <nav class="footer-nav" aria-label="Footer navigation">
+      <a href="index.html#generator">Invoice generator</a>
+      <a href="index.html#guide">How to create an invoice</a>
+      <a href="index.html#faq">FAQ</a>
+      <a href="about.html">About</a>
+      <a href="privacy.html">Privacy</a>
+      <a href="contact.html">Contact</a>
+    </nav>
+  </div>
+  <div class="container footer-legal">
+    <p class="affiliate-disclosure">Affiliate disclosure: some links on this site are affiliate links. If you sign up or buy through them, we may earn a commission at no extra cost to you. Sponsored placements are labelled "Sponsored".</p>
+    <p>&copy; <span id="year">2026</span> InvoiceKit. Not legal or tax advice.</p>
+  </div>
+</footer>
+
+<template id="item-template">
+  <div class="item-row">
+    <div class="cell-desc">
+      <input type="text" class="item-description" placeholder="Description of the work" aria-label="Item description">
+    </div>
+    <div class="cell-qty">
+      <input type="number" class="item-qty" min="0" step="0.01" value="1" inputmode="decimal" placeholder="Qty" aria-label="Quantity">
+    </div>
+    <div class="cell-rate">
+      <input type="number" class="item-rate" min="0" step="0.01" inputmode="decimal" placeholder="Rate" aria-label="Rate">
+    </div>
+    <div class="cell-total">
+      <span class="item-total" data-total>0.00</span>
+    </div>
+    <div class="cell-remove">
+      <button type="button" class="icon-btn remove-item" aria-label="Remove line item">&times;</button>
+    </div>
+  </div>
+</template>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "InvoiceKit — Free Invoice Generator",
+  "url": "https://yourusername.github.io/invoice-generator/",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Any",
+  "browserRequirements": "Requires JavaScript",
+  "description": "A free, browser-based invoice generator for freelancers. Add line items, tax, discount and a logo, then download a PDF or print. No sign-up and no backend.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "USD"
+  },
+  "featureList": [
+    "Live invoice preview",
+    "PDF download and printing",
+    "Tax and discount calculation",
+    "Multi-currency invoices",
+    "Optional logo upload",
+    "Autosave in the browser"
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is this invoice generator really free?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Every feature — including the PDF download, logo upload and unlimited invoices — is free, with no account and no watermark on your document. The site is supported by advertising and clearly labelled affiliate links."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Do I need to create an account or install anything?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. The generator is a single web page that works in any modern browser on desktop, tablet or phone. There is no sign-up, no email required and nothing to install."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Are my invoice details uploaded to a server?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. All calculations, the PDF export and the autosave happen inside your browser. Your business details, client names and logo stay on your device, stored in your browser's local storage. Clearing your browser data removes the saved draft."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I invoice international clients in different currencies?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Yes. Choose from 23 currencies including USD, EUR, GBP and MAD. The currency symbol and number formatting update in the live preview, and the totals are carried into the PDF. Amounts are not converted — you invoice in the currency you select."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "How are tax and discounts calculated?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "The subtotal is the sum of quantity × rate for every line item. An optional discount amount is subtracted from that subtotal, then the tax rate is applied to the discounted amount. The preview shows each step, and the total is what appears as the amount due."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Is a PDF invoice legally valid?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "In most countries a clear, itemised PDF invoice is accepted for tax and accounting purposes, but the requirements vary. Some jurisdictions require a tax identification number, a registered address or specific wording on the document. Check the rules where you are based, or ask your accountant, before relying on any template."
+      }
+    }
+  ]
+}
+</script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
