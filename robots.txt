@@ -1,5 +1,0 @@
-User-agent: *
-Allow: /
-
-# Replace the URL below with your real GitHub Pages address.
-Sitemap: https://aymanakhraz82-creator.github.io/https-Retr0.github.io/sitemap.xml
