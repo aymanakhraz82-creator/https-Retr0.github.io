@@ -1,5 +1,13 @@
 import QRCode from 'qrcode';
 import { icon } from '../icons.js';
+import {
+  buildEmailPayload,
+  buildPhonePayload,
+  buildTextPayload,
+  buildUrlPayload,
+  buildWifiPayload,
+  contrastWarning,
+} from '../lib/qr.js';
 import { canvasToBlob, download, toast, withBusy } from '../ui.js';
 
 const TYPES = [
@@ -65,19 +73,6 @@ const FIELDS = {
 };
 
 const isHex = (value) => /^#[0-9a-f]{6}$/i.test(value);
-
-const CONTRAST_RATIO_MIN = 3;
-
-function relativeLuminance(hex) {
-  const value = hex.replace('#', '');
-  const channels = [0, 2, 4].map((offset) => parseInt(value.slice(offset, offset + 2), 16) / 255);
-  const linear = channels.map((channel) =>
-    channel <= 0.03928 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4,
-  );
-  return 0.2126 * linear[0] + 0.7152 * linear[1] + 0.0722 * linear[2];
-}
-
-const escapeWifi = (value) => String(value).replace(/([\\;,:"])/g, '\\$1');
 
 function fieldHtml(field) {
   if (field.type === 'checkbox') {
@@ -212,52 +207,20 @@ export function mount(root) {
 
   function buildPayload() {
     const values = readValues();
-    if (type === 'url') {
-      let url = String(values.url || '').trim();
-      if (!url) throw new Error('Enter the link you want the code to open.');
-      if (!/^[a-z][a-z0-9+.-]*:/i.test(url)) url = `https://${url}`;
-      if (!/^(https?|mailto|tel):/i.test(url)) {
-        throw new Error('Use an http:// or https:// link, or a mailto: / tel: address.');
-      }
-      return url;
-    }
-    if (type === 'text') {
-      const text = String(values.text || '').trim();
-      if (!text) throw new Error('Enter the text you want to encode.');
-      return values.text;
-    }
+    if (type === 'url') return buildUrlPayload(values.url);
+    if (type === 'text') return buildTextPayload(values.text);
     if (type === 'wifi') {
-      const ssid = String(values.ssid || '').trim();
-      if (!ssid) throw new Error('Enter the network name (SSID).');
-      const security = values.security || 'WPA';
-      const password = security === 'nopass' ? '' : String(values.password || '');
-      if (security !== 'nopass' && !password) {
-        throw new Error('Enter the Wi-Fi password, or choose "Open — no password".');
-      }
-      const hidden = values.hidden ? 'H:true;' : '';
-      return `WIFI:T:${security};S:${escapeWifi(ssid)};P:${escapeWifi(password)};${hidden};`;
+      return buildWifiPayload({
+        ssid: values.ssid,
+        password: values.password,
+        security: values.security,
+        hidden: Boolean(values.hidden),
+      });
     }
     if (type === 'email') {
-      const email = String(values.email || '').trim();
-      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)) {
-        throw new Error('Enter a valid email address, for example name@example.com.');
-      }
-      const params = [];
-      if (String(values.subject || '').trim()) {
-        params.push(`subject=${encodeURIComponent(String(values.subject).trim())}`);
-      }
-      if (String(values.body || '').trim()) {
-        params.push(`body=${encodeURIComponent(String(values.body).trim())}`);
-      }
-      return `mailto:${email}${params.length ? `?${params.join('&')}` : ''}`;
+      return buildEmailPayload({ email: values.email, subject: values.subject, body: values.body });
     }
-    if (type === 'phone') {
-      const phone = String(values.phone || '').replace(/[^\d+]/g, '');
-      if (phone.replace(/\D/g, '').length < 3) {
-        throw new Error('Enter a phone number, including the country code if possible.');
-      }
-      return `tel:${phone}`;
-    }
+    if (type === 'phone') return buildPhonePayload(values.phone);
     throw new Error('Choose a QR code type first.');
   }
 
@@ -283,20 +246,7 @@ export function mount(root) {
 
   function updateContrast() {
     const { dark, light } = colors();
-    const darkLuminance = relativeLuminance(dark);
-    const lightLuminance = relativeLuminance(light);
-    const ratio =
-      (Math.max(darkLuminance, lightLuminance) + 0.05) /
-      (Math.min(darkLuminance, lightLuminance) + 0.05);
-
-    let message = '';
-    if (darkLuminance > lightLuminance) {
-      message =
-        'The foreground is lighter than the background. Inverted codes often fail to scan — swap the two colours for reliable results.';
-    } else if (ratio < 3) {
-      message =
-        'Low contrast between these colours. Some phone cameras will struggle; a darker foreground on a lighter background scans best.';
-    }
+    const message = contrastWarning(dark, light);
     warningEl.textContent = message;
     warningEl.classList.toggle('hidden', !message);
   }
@@ -325,9 +275,6 @@ export function mount(root) {
     if (/low contrast|contrast/i.test(message)) return message;
     return message || 'This QR code could not be generated.';
   }
-
-const CONTRAST_RATIO_MIN = 3;
-
 
   const schedule = () => {
     window.clearTimeout(debounce);

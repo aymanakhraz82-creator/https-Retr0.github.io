@@ -5,7 +5,11 @@
  * preview, the printed page and the PDF built with pdf-lib. Drafts, saved
  * clients and the numbering sequence live in localStorage only.
  */
+import boldFontUrl from '../assets/fonts/DejaVuSans-Bold.ttf?url';
+import regularFontUrl from '../assets/fonts/DejaVuSans.ttf?url';
 import { icon } from '../icons.js';
+import { billableItems, totalsOf } from '../lib/invoice-math.js';
+import { wrapText } from '../lib/text.js';
 import { download, imageSize, loadImage, toast, withBusy } from '../ui.js';
 
 const STORAGE = {
@@ -83,8 +87,19 @@ function formatMoney(amount, currency) {
   }
 }
 
-/** PDF standard fonts can only encode WinAnsi, so normalise common typography. */
-function pdfSafe(value) {
+/**
+ * The invoice embeds DejaVu Sans, so Arabic, accented Latin, Cyrillic and Greek
+ * text is written as real glyphs instead of "?". Only control characters that
+ * PDF cannot encode are stripped.
+ */
+function unicodeText(value) {
+  return String(value == null ? '' : value)
+    .replace(/\r\n?/g, '\n')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g, ' ');
+}
+
+/** Fallback for the built-in Helvetica fonts, which can only encode WinAnsi. */
+function winAnsiText(value) {
   return String(value == null ? '' : value)
     .replace(/[‘’]/g, "'")
     .replace(/[“”]/g, '"')
@@ -194,8 +209,8 @@ function normalizeState(input) {
       ? input.items.map((item) => ({
           id: item?.id || uid(),
           description: String(item?.description || ''),
-          quantity: Number(item?.quantity) || 0,
-          rate: Number(item?.rate) || 0,
+          quantity: Math.max(0, Number(item?.quantity) || 0),
+          rate: Math.max(0, Number(item?.rate) || 0),
         }))
       : base.items.map((item) => ({ ...item }));
 
@@ -253,21 +268,6 @@ function writeClients(list) {
   }
 }
 
-/* ------------------------------------------------------------------- Totals */
-
-function totalsOf(state) {
-  const subtotal = state.items.reduce((sum, item) => {
-    const quantity = Number(item.quantity) || 0;
-    const rate = Number(item.rate) || 0;
-    return sum + quantity * rate;
-  }, 0);
-  const discount = Math.min(Math.max(0, Number(state.discount) || 0), subtotal);
-  const taxable = Math.max(0, subtotal - discount);
-  const tax = taxable * (Math.max(0, Number(state.taxRate) || 0) / 100);
-  const shipping = Math.max(0, Number(state.shipping) || 0);
-  return { subtotal, discount, tax, shipping, total: taxable + tax + shipping };
-}
-
 /* ------------------------------------------------------------------- PDF */
 
 function hexToRgb(hex) {
@@ -292,8 +292,34 @@ function dataUrlToBytes(dataUrl) {
 async function buildInvoicePdf(state) {
   const { PDFDocument, StandardFonts, rgb } = await import('pdf-lib');
   const doc = await PDFDocument.create();
-  const regular = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+
+  // A bundled Unicode font covers Arabic and accented text; if the font asset
+  // cannot be fetched (for example a stale cache), fall back to the PDF
+  // standard fonts with WinAnsi-safe text so exporting still works.
+  let regular;
+  let bold;
+  let unicode = false;
+  try {
+    const fontkit = (await import('@pdf-lib/fontkit')).default;
+    doc.registerFontkit(fontkit);
+    const loadFont = async (url) => {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Font request failed (${response.status})`);
+      return new Uint8Array(await response.arrayBuffer());
+    };
+    const [regularBytes, boldBytes] = await Promise.all([
+      loadFont(regularFontUrl),
+      loadFont(boldFontUrl),
+    ]);
+    regular = await doc.embedFont(regularBytes, { subset: true });
+    bold = await doc.embedFont(boldBytes, { subset: true });
+    unicode = true;
+  } catch (error) {
+    console.warn('[invoice] Unicode font unavailable, using Helvetica.', error);
+    regular = await doc.embedFont(StandardFonts.Helvetica);
+    bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  }
+  const safeText = unicode ? unicodeText : winAnsiText;
 
   const accent = rgb(...hexToRgb(state.meta.accent));
   const ink = rgb(0.06, 0.09, 0.16);
@@ -324,26 +350,11 @@ async function buildInvoicePdf(state) {
     y = pageHeight - margin;
   };
 
-  const wrap = (text, font, size, maxWidth) => {
-    const words = pdfSafe(text).split(/\s+/).filter(Boolean);
-    if (!words.length) return [''];
-    const lines = [];
-    let line = '';
-    words.forEach((word) => {
-      const candidate = line ? `${line} ${word}` : word;
-      if (font.widthOfTextAtSize(candidate, size) <= maxWidth || !line) {
-        line = candidate;
-      } else {
-        lines.push(line);
-        line = word;
-      }
-    });
-    if (line) lines.push(line);
-    return lines;
-  };
+  const wrap = (text, font, size, maxWidth) =>
+    wrapText(safeText(text), (value) => font.widthOfTextAtSize(value, size), maxWidth);
 
   const drawText = (text, x, baseline, options = {}) => {
-    page.drawText(pdfSafe(text), {
+    page.drawText(safeText(text), {
       x,
       y: baseline,
       size: options.size ?? 9,
@@ -353,7 +364,7 @@ async function buildInvoicePdf(state) {
   };
 
   const drawRight = (text, xRight, baseline, options = {}) => {
-    const safe = pdfSafe(text);
+    const safe = safeText(text);
     const font = options.font || regular;
     const size = options.size ?? 9;
     page.drawText(safe, {
@@ -367,7 +378,7 @@ async function buildInvoicePdf(state) {
 
   const drawWrapped = (text, x, startY, size, maxWidth, lineHeight) => {
     let cursorY = startY;
-    pdfSafe(text)
+    safeText(text)
       .split('\n')
       .forEach((paragraph) => {
         wrap(paragraph, regular, size, maxWidth).forEach((line) => {
@@ -491,9 +502,18 @@ async function buildInvoicePdf(state) {
 
   let rowTop = tableHead(y);
 
-  state.items.forEach((item) => {
-    const quantity = Number(item.quantity) || 0;
-    const rate = Number(item.rate) || 0;
+  const printableItems = billableItems(state);
+  if (!printableItems.length) {
+    drawText('No billable line items on this invoice.', columns.desc, rowTop - 4, {
+      size: 9,
+      color: muted,
+    });
+    rowTop -= 24;
+  }
+
+  printableItems.forEach((item) => {
+    const quantity = Math.max(0, Number(item.quantity) || 0);
+    const rate = Math.max(0, Number(item.rate) || 0);
     const descriptionLines = wrap(item.description || 'Item', regular, 9, 250);
     const rowHeight = Math.max(21, descriptionLines.length * 11.5 + 9);
 
@@ -591,8 +611,8 @@ async function buildInvoicePdf(state) {
   const pages = doc.getPages();
   pages.forEach((currentPage, index) => {
     const label = pages.length > 1 ? `${index + 1} / ${pages.length}` : state.meta.number;
-    currentPage.drawText(pdfSafe(label), {
-      x: pageWidth - margin - regular.widthOfTextAtSize(pdfSafe(label), 7.5),
+    currentPage.drawText(safeText(label), {
+      x: pageWidth - margin - regular.widthOfTextAtSize(safeText(label), 7.5),
       y: 28,
       size: 7.5,
       font: regular,
@@ -600,7 +620,7 @@ async function buildInvoicePdf(state) {
     });
   });
 
-  doc.setTitle(pdfSafe(`Invoice ${state.meta.number}`));
+  doc.setTitle(safeText(`Invoice ${state.meta.number}`));
   doc.setCreator('Ultimate Free Tool');
   doc.setProducer('Ultimate Free Tool');
   doc.setCreationDate(new Date());
@@ -942,8 +962,8 @@ export function mount(root) {
 
     const rows = state.items
       .map((item) => {
-        const quantity = Number(item.quantity) || 0;
-        const rate = Number(item.rate) || 0;
+        const quantity = Math.max(0, Number(item.quantity) || 0);
+        const rate = Math.max(0, Number(item.rate) || 0);
         return `<tr>
           <td class="inv-desc">${escapeHtml(item.description || '—')}<span class="inv-mobile-calc">${formatQty(quantity)} × ${money(rate)}</span></td>
           <td class="inv-num inv-qty">${formatQty(quantity)}</td>

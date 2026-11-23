@@ -1,4 +1,5 @@
 import { icon } from '../icons.js';
+import { describeBackgroundError } from '../lib/background.js';
 import {
   canvasToBlob,
   createDropzone,
@@ -205,19 +206,23 @@ export function mount(root) {
       loading.classList.add('hidden');
       editor.classList.remove('hidden');
       downloadBtn.disabled = false;
-      meta.textContent = `${formatBytes(file.size)} in · ${formatBytes(blob.size)} out`;
+      setStatus(meta, `${formatBytes(file.size)} in · ${formatBytes(blob.size)} out`);
       resultNote.innerHTML = `<p class="form-ok flex items-start gap-2 text-xs">${icon('check', 'mt-0.5 h-4 w-4')} <span>Background removed locally. The model is cached, so the next image starts faster.</span></p>`;
-      setStatus(meta, '');
     } catch (error) {
       console.error(error);
-      const message = /fetch|network|Failed to load|CORS/i.test(String(error?.message))
-        ? 'The AI model could not be downloaded. Check your connection and try again — no image data was sent anywhere.'
-        : "The background could not be removed from this image. Try a smaller or simpler photo, or a JPG copy.";
+      const message = describeBackgroundError(error, { online: navigator.onLine !== false });
       toast(message, 'error');
       setStatus(meta, message, 'error');
       loading.classList.add('hidden');
-      resultNote.innerHTML = `<p class="form-error text-xs">${message}</p>`;
+      resultNote.innerHTML = `<div class="space-y-2 rounded-xl border border-danger/30 bg-danger-soft p-3">
+        <p class="form-error text-xs">${message}</p>
+        <button type="button" class="btn btn-secondary btn-sm" data-retry>${icon('wand', 'h-4 w-4')} Try again</button>
+      </div>`;
       resultNote.classList.remove('hidden');
+      resultNote.querySelector('[data-retry]')?.addEventListener('click', () => {
+        const retryFile = currentFile;
+        if (retryFile) process(retryFile);
+      });
     } finally {
       busy = false;
       progressHost.replaceChildren();

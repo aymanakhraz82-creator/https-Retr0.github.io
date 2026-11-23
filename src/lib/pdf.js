@@ -15,6 +15,21 @@ export async function openWithPdfjs(file) {
   return pdfjsLib.getDocument({ data: bytes, isEvalSupported: false }).promise;
 }
 
+/**
+ * Releases a pdf.js document. pdf.js v6 moved teardown from the document proxy to
+ * its loading task, so try each API in turn instead of assuming `destroy` exists.
+ */
+export async function closePdfjs(pdf) {
+  if (!pdf) return;
+  try {
+    if (typeof pdf.destroy === 'function') await pdf.destroy();
+    else if (typeof pdf.loadingTask?.destroy === 'function') await pdf.loadingTask.destroy();
+    else if (typeof pdf.cleanup === 'function') await pdf.cleanup();
+  } catch {
+    /* Cleanup is best-effort: the pages are already rendered at this point. */
+  }
+}
+
 /** Loads a File with pdf-lib (for editing). Returns the document and raw bytes. */
 export async function openWithPdfLib(file) {
   const { PDFDocument } = await import('pdf-lib');

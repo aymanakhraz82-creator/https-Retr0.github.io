@@ -27,11 +27,7 @@ const PDF_MESSAGES = {
 export function mount(root) {
   root.innerHTML = `
     <div class="space-y-4">
-      <div data-drop role="button" tabindex="0" aria-label="Choose a file, or drag and drop it here">
-        <span class="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft text-brand">${icon('merge', 'h-5 w-5')}</span>
-        <p class="dropzone-title">Drop PDFs here, or <span class="browse">browse</span></p>
-        <p class="hint">2–${LIMITS.maxPdfFiles} PDF files · up to ${LIMITS.pdfMB} MB each</p>
-      </div>
+      <div data-drop></div>
 
       <section class="hidden space-y-2" data-list-section aria-labelledby="merge-list-heading">
         <div class="flex items-center justify-between gap-3">

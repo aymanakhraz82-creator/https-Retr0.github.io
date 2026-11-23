@@ -9,7 +9,8 @@
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { site, tools, staticPages, homeFaqs, categories } from '../tools.config.js';
+import { activeAffiliateLinks } from '../src/config/affiliates.js';
+import { site, tools, staticPages, homeFaqs } from '../tools.config.js';
 import { icon, brandMark } from '../src/icons.js';
 import { pages as staticContent } from './content.mjs';
 
@@ -53,8 +54,9 @@ const themeScript = `<script>
   (function () {
     try {
       var stored = localStorage.getItem('uft-theme');
-      var dark = stored ? stored === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var dark = stored ? stored === 'dark' : true;
       document.documentElement.classList.toggle('dark', dark);
+      document.documentElement.classList.toggle('light', !dark);
     } catch (error) {}
   })();
 </script>`;
@@ -70,7 +72,7 @@ function head({ title, description, route, type = 'website', robots = 'index,fol
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${canonical}">
 <meta name="robots" content="${robots}">
-<meta name="theme-color" content="#4f46e5" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#fbf6ee" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#0a0f1c" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="${type}">
 <meta property="og:site_name" content="${esc(site.name)}">
@@ -119,8 +121,8 @@ function header(active = '') {
   return `<header class="site-header relative">
   <div class="container-page flex h-16 items-center justify-between gap-2">
     <a class="brand-link" href="%BASE_URL%" aria-label="${esc(site.name)} home">
-      ${brandMark('h-9 w-9 shrink-0')}
-      <span class="text-[15px] leading-tight sm:text-base">Ultimate <span class="text-brand">Free</span> Tool</span>
+      ${brandMark('h-8 w-8 shrink-0')}
+      <span class="brand-word">Ultimate <span class="text-brand">Free</span> Tool</span>
     </a>
 
     <nav class="hidden items-center gap-1 md:flex" aria-label="Main">
@@ -166,32 +168,39 @@ function header(active = '') {
 </div>`;
 }
 
-const footer = () => `<footer class="mt-4 border-t border-line bg-surface/60">
+const donateButton = () =>
+  `<a class="btn-donate" href="${esc(site.donateUrl)}" target="_blank" rel="noopener noreferrer">Support this project</a>`;
+
+const footer = () => `<footer class="site-footer">
   <div class="container-page grid gap-8 py-10 md:grid-cols-4">
     <div class="md:col-span-2">
       <a class="brand-link" href="%BASE_URL%">
         ${brandMark('h-8 w-8')}
-        <span>Ultimate <span class="text-brand">Free</span> Tool</span>
+        <span class="brand-word">Ultimate <span class="text-brand">Free</span> Tool</span>
       </a>
       <p class="mt-3 max-w-sm text-sm leading-relaxed text-muted">${esc(site.description)}</p>
-      <p class="mt-4 inline-flex items-center gap-2 rounded-full border border-accent/25 bg-accent-soft px-3 py-1.5 text-xs font-semibold text-accent">
+      <p class="pill pill-accent mt-4 font-semibold">
         ${icon('shield', 'h-4 w-4')} 100% client-side · no uploads
       </p>
+      <p class="mt-5">${donateButton()}</p>
     </div>
     <div>
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">Tools</h2>
+      <h2 class="footer-heading">Tools</h2>
       <ul class="mt-3 space-y-2 text-sm">
-        ${tools.map((tool) => `<li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%${tool.slug}/">${esc(tool.name)}</a></li>`).join('\n        ')}
+        ${tools.map((tool) => `<li><a class="footer-link" href="%BASE_URL%${tool.slug}/">${esc(tool.name)}</a></li>`).join('\n        ')}
       </ul>
     </div>
     <div>
-      <h2 class="text-xs font-semibold uppercase tracking-wider text-muted">Site</h2>
+      <h2 class="footer-heading">Site</h2>
       <ul class="mt-3 space-y-2 text-sm">
-        <li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%about/">About</a></li>
-        <li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%contact/">Contact</a></li>
-        <li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%privacy/">Privacy policy</a></li>
-        <li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%terms/">Terms of use</a></li>
-        <li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%sitemap.xml">Sitemap</a></li>
+        <li><a class="footer-link" href="%BASE_URL%about/">About</a></li>
+        <li><a class="footer-link" href="%BASE_URL%contact/">Contact</a></li>
+        <li><a class="footer-link" href="%BASE_URL%privacy/">Privacy policy</a></li>
+        <li><a class="footer-link" href="%BASE_URL%terms/">Terms of use</a></li>
+        <li><a class="footer-link" href="%BASE_URL%sitemap.xml">Sitemap</a></li>
+        <li><a class="footer-link" href="${site.repoUrl}" target="_blank" rel="noopener">Source code</a></li>
+        <li><a class="footer-link" href="${site.licenseUrl}" target="_blank" rel="noopener">License (${esc(site.license)})</a></li>
+        ${site.contactEmail ? `<li><a class="footer-link" href="mailto:${esc(site.contactEmail)}">${esc(site.contactEmail)}</a></li>` : ''}
       </ul>
     </div>
   </div>
@@ -216,13 +225,16 @@ ${footerExtra}
 
 /* ------------------------------------------------------------------- Cards */
 
-const toolCard = (tool) => `<a href="%BASE_URL%${tool.slug}/" class="card group flex flex-col gap-4 p-5 transition hover:-translate-y-0.5 hover:border-brand/45 focus-visible:-translate-y-0.5">
-  <span class="icon-tile h-11 w-11 rounded-xl">${icon(tool.icon, 'h-6 w-6')}</span>
-  <span class="flex flex-col gap-1.5">
-    <span class="text-base font-semibold tracking-tight text-ink">${esc(tool.name)}</span>
-    <span class="text-sm leading-relaxed text-muted">${esc(tool.description)}</span>
+const cardAccent = { PDF: 'pdf', Images: 'images', Business: 'business', Utilities: 'utilities' };
+
+const toolCard = (tool) => `<a href="%BASE_URL%${tool.slug}/" class="tool-card tool-card--${cardAccent[tool.category] || 'pdf'}">
+  <span class="tool-card__top">
+    <span class="icon-tile">${icon(tool.icon, 'h-5 w-5')}</span>
+    <span class="tool-card__tag">${esc(tool.category)}</span>
   </span>
-  <span class="mt-auto inline-flex items-center gap-1.5 pt-1 text-sm font-semibold text-brand">Open tool ${icon('arrow', 'h-4 w-4')}</span>
+  <span class="tool-card__name">${esc(tool.name)}</span>
+  <span class="tool-card__desc">${esc(tool.description)}</span>
+  <span class="tool-card__more">Open tool ${icon('arrow', 'h-4 w-4')}</span>
 </a>`;
 
 const faqBlock = (faqs, heading = 'Frequently asked questions') => `<section class="card card-pad" aria-labelledby="faq-heading">
@@ -261,7 +273,10 @@ const relatedBlock = (tool) => {
 };
 
 const recommendedBlock = (tool) => {
-  if (!Array.isArray(tool.recommended) || !tool.recommended.length) return '';
+  // Rendered only for the invoice page and only once real affiliate URLs are
+  // configured in src/config/affiliates.js. No placeholder links ever ship.
+  const links = activeAffiliateLinks();
+  if (tool.slug !== 'invoice-generator' || !links.length) return '';
   return `<section class="card card-pad" aria-labelledby="recommended-heading">
     <div class="flex flex-wrap items-center gap-2">
       <h2 id="recommended-heading" class="text-lg font-bold tracking-tight">Recommended tools</h2>
@@ -269,9 +284,9 @@ const recommendedBlock = (tool) => {
     </div>
     <p class="mt-1 text-xs text-muted">Affiliate links. We may earn a commission at no extra cost to you.</p>
     <div class="mt-4 grid gap-3 sm:grid-cols-3">
-      ${tool.recommended
+      ${links
         .map(
-          (item) => `<a href="${esc(item.href)}" target="_blank" rel="sponsored nofollow noopener" class="flex flex-col gap-1.5 rounded-xl border border-line bg-surface-2/40 p-4 transition hover:border-brand/45">
+          (item) => `<a href="${esc(item.href)}" target="_blank" rel="sponsored noopener" class="flex flex-col gap-1.5 rounded-xl border border-line bg-surface-2/40 p-4 transition hover:border-brand/45">
         <span class="text-[10px] font-semibold uppercase tracking-wider text-muted">${esc(item.category)}</span>
         <span class="text-sm font-semibold text-ink">${esc(item.name)}</span>
         <span class="text-xs leading-relaxed text-muted">${esc(item.description)}</span>
@@ -314,54 +329,42 @@ function buildHome() {
   };
 
   const body = `<main id="main">
-  <section class="container-page pb-6 pt-8 sm:pt-12">
-    <div class="flex max-w-3xl flex-col items-start gap-4">
+  <section class="hero">
+    <div class="hero-sky" aria-hidden="true"></div>
+    <div class="container-page hero-inner">
       <span class="pill pill-accent">${icon('shield', 'h-4 w-4')} Your files never leave your device</span>
-      <h1 class="text-4xl font-extrabold leading-[1.08] tracking-tight sm:text-5xl">Everyday file tools, <span class="text-brand">without the upload</span>.</h1>
-      <p class="max-w-2xl text-base leading-relaxed text-muted sm:text-lg">Merge and split PDFs, shrink a scan, remove a photo background, make a QR code or write an invoice — free, in your browser. No sign-up, no watermark, no waiting in a queue.</p>
-      <div class="flex flex-wrap items-center gap-3 pt-1">
+      <h1 class="hero-title">Everyday file tools, <span class="text-brand">without the upload</span>.</h1>
+      <p class="hero-lead">Merge and split PDFs, shrink a scan, remove a photo background, make a QR code or write an invoice — free, in your browser. No sign-up, no watermark, no waiting in a queue.</p>
+      <div class="hero-actions">
         <a class="btn btn-primary btn-block sm:w-auto" href="#tools">Browse the tools ${icon('arrow', 'h-4 w-4')}</a>
         <a class="btn btn-secondary" href="%BASE_URL%about/">How it works</a>
       </div>
-      <ul class="flex flex-wrap gap-x-5 gap-y-2 pt-2 text-xs font-medium text-muted">
-        <li class="inline-flex items-center gap-1.5">${icon('check', 'h-4 w-4 text-accent')} No uploads</li>
-        <li class="inline-flex items-center gap-1.5">${icon('check', 'h-4 w-4 text-accent')} No account</li>
-        <li class="inline-flex items-center gap-1.5">${icon('check', 'h-4 w-4 text-accent')} No watermark</li>
-        <li class="inline-flex items-center gap-1.5">${icon('check', 'h-4 w-4 text-accent')} Mobile friendly</li>
+      <ul class="trust-chips">
+        <li class="trust-chip">${icon('check', 'h-4 w-4')} No uploads</li>
+        <li class="trust-chip">${icon('check', 'h-4 w-4')} No account</li>
+        <li class="trust-chip">${icon('check', 'h-4 w-4')} No watermark</li>
+        <li class="trust-chip">${icon('check', 'h-4 w-4')} Mobile friendly</li>
       </ul>
     </div>
   </section>
 
-  <section id="tools" class="container-page scroll-mt-24 py-6" aria-labelledby="tools-heading">
-    <div class="flex flex-wrap items-end justify-between gap-2">
+  <section id="tools" class="container-page section scroll-mt-24" aria-labelledby="tools-heading">
+    <div class="section-head">
       <div>
-        <h2 id="tools-heading" class="text-2xl font-bold tracking-tight sm:text-3xl">All tools</h2>
-        <p class="mt-1 text-sm text-muted">${tools.length} tools. Every one runs locally in your browser.</p>
+        <h2 id="tools-heading" class="section-title">All tools</h2>
+        <p class="section-sub">${tools.length} tools. Every one runs locally in your browser.</p>
       </div>
-      <p class="text-xs text-muted">No limits, no watermarks</p>
+      <p class="section-note">No limits, no watermarks</p>
     </div>
 
-    <div class="mt-8 space-y-10">
-      ${categories
-        .map((category) => {
-          const list = tools.filter((tool) => tool.category === category);
-          if (!list.length) return '';
-          const headings = { PDF: 'PDF tools', Images: 'Image tools', Business: 'Business tools', Utilities: 'Utility tools' };
-          const heading = headings[category] || `${category} tools`;
-          return `<div>
-        <h3 class="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted">${heading} <span class="pill">${list.length}</span></h3>
-        <div class="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          ${list.map(toolCard).join('\n          ')}
-        </div>
-      </div>`;
-        })
-        .join('\n      ')}
+    <div class="tools-grid">
+      ${tools.map(toolCard).join('\n      ')}
     </div>
   </section>
 
-  <section class="container-page py-8" aria-labelledby="how-heading">
+  <section class="container-page section" aria-labelledby="how-heading">
     <div class="card card-pad sm:p-8">
-      <h2 id="how-heading" class="text-2xl font-bold tracking-tight">How a browser-only tool works</h2>
+      <h2 id="how-heading" class="section-title">How a browser-only tool works</h2>
       <div class="step-list mt-6">
         <div class="space-y-2">
           <span class="step-number">1</span>
@@ -382,11 +385,11 @@ function buildHome() {
     </div>
   </section>
 
-  <section class="container-page py-6" aria-labelledby="privacy-heading">
+  <section class="container-page section" aria-labelledby="privacy-heading">
     <div class="grid gap-4 sm:grid-cols-3">
       <div class="card card-pad">
         <span class="icon-tile mb-3">${icon('lock', 'h-5 w-5')}</span>
-        <h2 id="privacy-heading" class="text-sm font-semibold">Private by architecture</h2>
+        <h2 id="privacy-heading" class="font-sans text-sm font-semibold">Private by architecture</h2>
         <p class="mt-1.5 text-sm leading-relaxed text-muted">There is no backend to receive a file. That is a design choice, not a promise in a policy.</p>
       </div>
       <div class="card card-pad">
@@ -402,7 +405,7 @@ function buildHome() {
     </div>
   </section>
 
-  <div class="container-page py-6">
+  <div class="container-page section">
     ${faqBlock(homeFaqs, 'Questions about the tools')}
   </div>
 
@@ -471,13 +474,13 @@ function buildToolPage(tool) {
   </div>
 
   <section class="container-page pb-6 pt-4 sm:pt-6">
-    <div class="flex max-w-3xl flex-col items-start gap-3">
+    <div class="tool-head">
       <div class="flex flex-wrap gap-2">
         <span class="pill">${esc(tool.category)}</span>
         <span class="pill pill-accent">${icon('shield', 'h-4 w-4')} ${esc(tool.badge || 'Your files never leave your device')}</span>
       </div>
-      <h1 class="text-3xl font-extrabold leading-tight tracking-tight sm:text-4xl">${esc(tool.h1)}</h1>
-      <p class="text-base leading-relaxed text-muted sm:text-lg">${esc(tool.lead)}</p>
+      <h1 class="tool-title">${esc(tool.h1)}</h1>
+      <p class="tool-lead">${esc(tool.lead)}</p>
       ${tool.notice ? `<p class="rounded-xl border border-warn/30 bg-warn-soft px-3.5 py-3 text-sm leading-relaxed text-warn">${esc(tool.notice)}</p>` : ''}
     </div>
   </section>
@@ -485,14 +488,29 @@ function buildToolPage(tool) {
   <div class="container-page pb-12">
     <div class="tool-layout">
       <div class="min-w-0 space-y-6">
-        <div id="tool-root" class="card card-pad" data-tool="${tool.slug}">
-          <div class="flex items-center justify-center gap-3 py-10 text-sm text-muted" data-tool-loading>
+        <div id="tool-root" class="card card-pad tool-surface" data-tool="${tool.slug}">
+          <div class="tool-loading" data-tool-loading>
             <span class="spinner"></span> Loading ${esc(tool.name)}…
           </div>
           <noscript>
+            <style>[data-tool-loading]{display:none !important}</style>
             <p class="form-error">This tool needs JavaScript because all processing happens in your browser. Enable JavaScript and reload the page.</p>
           </noscript>
         </div>
+        <script>
+          // If the tool's JavaScript bundle never arrives (offline load, blocked
+          // script, CDN hiccup) replace the endless spinner with a real error
+          // and a reload button.
+          (function () {
+            window.setTimeout(function () {
+              var root = document.querySelector('[data-tool]');
+              if (!root || !root.querySelector('[data-tool-loading]')) return;
+              root.innerHTML = '<div class="space-y-3"><p class="form-error">This tool did not finish loading. That usually means the page was opened while offline or a script was blocked.</p><button type="button" class="btn btn-secondary" data-tool-reload>Reload the page</button></div>';
+              var button = root.querySelector('[data-tool-reload]');
+              if (button) button.addEventListener('click', function () { window.location.reload(); });
+            }, 20000);
+          })();
+        </script>
 
         <aside class="ad-slot ad-slot--footer" aria-label="Advertisement">
           <!-- AD SLOT (below tool): replace this comment with your ad unit markup. -->
@@ -536,7 +554,7 @@ function buildToolPage(tool) {
       </div>
 
       <aside class="tool-sidebar">
-        <div class="ad-slot ad-slot--box" aria-label="Advertisement">
+        <div class="ad-slot ad-slot--box" role="complementary" aria-label="Advertisement">
           <!-- AD SLOT (sidebar): replace this comment with your ad unit markup. -->
         </div>
 
@@ -545,7 +563,7 @@ function buildToolPage(tool) {
           <ul class="mt-3 space-y-2.5 text-xs leading-relaxed text-muted">
             <li class="flex items-start gap-2">${icon('check', 'mt-0.5 h-3.5 w-3.5 text-accent')} Files are processed in your browser tab.</li>
             <li class="flex items-start gap-2">${icon('check', 'mt-0.5 h-3.5 w-3.5 text-accent')} No upload, no account, no file storage.</li>
-            <li class="flex items-start gap-2">${icon('check', 'mt-0.5 h-3.5 w-3.5 text-accent')} Works offline once the page has loaded.</li>
+            <li class="flex items-start gap-2">${icon('check', 'mt-0.5 h-3.5 w-3.5 text-accent')} ${esc(tool.offline || 'Works offline once the page has loaded.')}</li>
           </ul>
           <a class="link mt-4 inline-flex items-center gap-1 text-xs" href="%BASE_URL%privacy/">Read the privacy policy ${icon('arrow', 'h-3.5 w-3.5')}</a>
         </div>
@@ -596,6 +614,11 @@ function buildStaticPage(slug) {
         <h2 class="text-base font-semibold">Send a message</h2>
         <p class="mt-2 text-sm leading-relaxed text-muted">The project is hosted on GitHub, so the issue tracker is the contact form. A free GitHub account is required to post.</p>
         <a class="btn btn-primary mt-4" href="${site.contactUrl}" target="_blank" rel="noopener">Open the issue tracker ${icon('arrow', 'h-4 w-4')}</a>
+        ${
+          site.contactEmail
+            ? `<p class="mt-4 text-sm text-muted">Prefer email? Write to <a class="link font-medium" href="mailto:${esc(site.contactEmail)}">${esc(site.contactEmail)}</a>. Replies are best-effort; never send confidential documents by email.</p>`
+            : ''
+        }
         <p class="hint mt-3">Please do not attach confidential documents or personal data to a public issue.</p>
       </div>`
     : '';
@@ -609,7 +632,7 @@ function buildStaticPage(slug) {
         <li><span class="text-ink">${esc(page.h1)}</span></li>
       </ol>
     </nav>
-    <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">${esc(page.h1)}</h1>
+    <h1 class="mt-3 page-title">${esc(page.h1)}</h1>
     <p class="mt-3 max-w-2xl text-base leading-relaxed text-muted">${esc(page.lead)}</p>
     <p class="mt-3 text-xs text-muted">Last updated ${esc(page.updated)}</p>
   </section>
@@ -626,6 +649,9 @@ function buildStaticPage(slug) {
           )
           .join('\n        ')}
         ${
+          slug === 'about' ? `<p class="mt-8">${donateButton()}</p>` : ''
+        }
+        ${
           slug === 'contact'
             ? ''
             : `<p class="mt-6"><a href="%BASE_URL%contact/">Questions? Contact the project →</a></p>`
@@ -633,17 +659,17 @@ function buildStaticPage(slug) {
       </article>
 
       <aside class="tool-sidebar">
-        <div class="ad-slot ad-slot--box" aria-label="Advertisement">
+        <div class="ad-slot ad-slot--box" role="complementary" aria-label="Advertisement">
           <!-- AD SLOT (sidebar): replace this comment with your ad unit markup. -->
         </div>
         <div class="card card-pad">
           <h2 class="text-sm font-semibold">Quick links</h2>
           <ul class="mt-3 space-y-2 text-sm">
-            <li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%#tools">All tools</a></li>
-            <li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%about/">About</a></li>
-            <li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%contact/">Contact</a></li>
-            <li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%privacy/">Privacy policy</a></li>
-            <li><a class="text-ink/80 hover:text-brand" href="%BASE_URL%terms/">Terms of use</a></li>
+            <li><a class="footer-link" href="%BASE_URL%#tools">All tools</a></li>
+            <li><a class="footer-link" href="%BASE_URL%about/">About</a></li>
+            <li><a class="footer-link" href="%BASE_URL%contact/">Contact</a></li>
+            <li><a class="footer-link" href="%BASE_URL%privacy/">Privacy policy</a></li>
+            <li><a class="footer-link" href="%BASE_URL%terms/">Terms of use</a></li>
           </ul>
         </div>
       </aside>
@@ -661,7 +687,7 @@ function buildStaticPage(slug) {
 function buildNotFound() {
   const body = `<main id="main" class="container-page flex min-h-[60vh] flex-col items-center justify-center py-16 text-center">
     <p class="text-sm font-semibold uppercase tracking-widest text-brand">404</p>
-    <h1 class="mt-3 text-3xl font-extrabold tracking-tight sm:text-4xl">Page not found</h1>
+    <h1 class="mt-3 page-title">Page not found</h1>
     <p class="mt-3 max-w-md text-sm leading-relaxed text-muted">The page you are looking for does not exist or has moved. Every tool is listed on the home page.</p>
     <div class="mt-6 flex flex-wrap justify-center gap-3">
       <a class="btn btn-primary" href="%BASE_URL%">Go to the tools</a>

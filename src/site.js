@@ -16,10 +16,10 @@ export function initChrome() {
 
   /* ---------------------------------------------------------------- Theme */
   const toggle = document.querySelector('[data-theme-toggle]');
-  const media = window.matchMedia('(prefers-color-scheme: dark)');
 
   const setTheme = (dark, persist) => {
     root.classList.toggle('dark', dark);
+    root.classList.toggle('light', !dark);
     applyThemeLabel(toggle, dark);
     if (persist) {
       try {
@@ -36,18 +36,10 @@ export function initChrome() {
   } catch {
     stored = null;
   }
-  setTheme(stored ? stored === 'dark' : media.matches, false);
+  // Night is the default; the cream theme is an explicit choice.
+  setTheme(stored ? stored === 'dark' : true, false);
 
   toggle?.addEventListener('click', () => setTheme(!root.classList.contains('dark'), true));
-  media.addEventListener?.('change', (event) => {
-    let hasStored = null;
-    try {
-      hasStored = localStorage.getItem(THEME_KEY);
-    } catch {
-      hasStored = null;
-    }
-    if (!hasStored) setTheme(event.matches, false);
-  });
 
   /* -------------------------------------------------------- Header panels */
   const toolsToggle = document.querySelector('[data-tools-toggle]');

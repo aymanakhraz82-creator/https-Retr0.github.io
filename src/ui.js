@@ -3,6 +3,9 @@
  * No framework: plain DOM, no dependencies.
  */
 import { icon } from './icons.js';
+import { validateFiles } from './lib/upload.js';
+
+export { parsePageRanges, parseRangeGroups } from './lib/ranges.js';
 
 export const LIMITS = {
   pdfMB: 50,
@@ -187,36 +190,15 @@ export function createDropzone({
     error.classList.add('hidden');
   };
 
-  const typeMatches = (file) =>
-    types.some((type) => file.type === type || file.name.toLowerCase().endsWith(type));
-
   const handle = (fileList) => {
-    const files = Array.from(fileList || []);
-    if (!files.length) return;
-
-    const wrongType = files.filter((file) => !typeMatches(file));
-    if (wrongType.length) {
-      showError(
-        `“${wrongType[0].name}” is not a supported file. Please choose ${typeLabel}.`,
-      );
+    const result = validateFiles(fileList, { types, maxSizeMB, maxFiles, typeLabel });
+    if (result.error) {
+      showError(result.error);
       return;
     }
-
-    const tooBig = files.find((file) => toMB(file.size) > maxSizeMB);
-    if (tooBig) {
-      showError(
-        `“${tooBig.name}” is ${formatBytes(tooBig.size)}. The limit is ${maxSizeMB} MB per file — try compressing it first.`,
-      );
-      return;
-    }
-
-    if (files.length > maxFiles) {
-      showError(`Please add up to ${maxFiles} files at a time.`);
-      return;
-    }
-
+    if (!result.files.length) return;
     clearError();
-    onFiles(files);
+    onFiles(result.files);
   };
 
   zone.addEventListener('click', () => input.click());
@@ -297,65 +279,21 @@ export function imageSize(image) {
   };
 }
 
-/* ------------------------------------------------------------ Page ranges */
-
-/**
- * "1-3, 5, 8-10" -> [1,2,3,5,8,9,10]. Throws a friendly message on bad input.
- */
-export function parsePageRanges(raw, totalPages) {
-  const text = String(raw || '').trim().toLowerCase();
-  if (!text) throw new Error('Enter at least one page or range, for example 1-3, 7.');
-  if (text === 'all') return Array.from({ length: totalPages }, (_, index) => index + 1);
-
-  const pages = [];
-  for (const token of text.split(',')) {
-    const part = token.trim();
-    if (!part) continue;
-    const match = /^(\d+)\s*(?:[-–]\s*(\d+))?$/.exec(part);
-    if (!match) {
-      throw new Error(`“${part}” is not a page or range. Use numbers like 1-3 or 5.`);
-    }
-    const start = Number(match[1]);
-    const end = match[2] ? Number(match[2]) : start;
-    if (start < 1 || end < 1) throw new Error('Pages start at 1.');
-    if (start > totalPages || end > totalPages) {
-      throw new Error(`That range goes past the last page. This PDF has ${totalPages} page${totalPages === 1 ? '' : 's'}.`);
-    }
-    if (start > end) throw new Error(`“${part}” runs backwards. Put the smaller page first.`);
-    for (let page = start; page <= end; page += 1) {
-      if (!pages.includes(page)) pages.push(page);
-    }
-  }
-  if (!pages.length) throw new Error('Enter at least one page or range, for example 1-3, 7.');
-  return pages;
-}
-
-/** Groups for "split into separate files": each comma-separated range is a group. */
-export function parseRangeGroups(raw, totalPages) {
-  const groups = String(raw || '')
-    .split(',')
-    .map((part) => part.trim())
-    .filter(Boolean)
-    .map((part) => {
-      if (/^all$/i.test(part)) return Array.from({ length: totalPages }, (_, index) => index + 1);
-      return parsePageRanges(part, totalPages);
-    });
-  if (!groups.length) throw new Error('Enter at least one range, for example 1-3, 4, 5-8.');
-  return groups;
-}
-
 /* ------------------------------------------------------------ PDF helpers */
 
 export function friendlyPdfError(error) {
   const name = error?.name || '';
   const message = String(error?.message || error || '');
-  if (name === 'PasswordException' || /password/i.test(message)) {
+  if (name === 'PasswordException' || /password|encrypted/i.test(message)) {
     return 'This PDF is password-protected. Unlock it in your PDF reader first, then try again.';
   }
-  if (/InvalidPDF|No PDF header|not a PDF/i.test(message) || name === 'InvalidPDFException') {
+  if (/InvalidPDF|No PDF header|not a PDF|expected a pdf/i.test(message) || name === 'InvalidPDFException') {
     return 'That file does not look like a valid PDF. It may be damaged or renamed from another format.';
   }
-  if (/out of memory|allocation/i.test(message)) {
+  if (/no pages|page count/i.test(message)) {
+    return 'This PDF has no pages, so there is nothing to process.';
+  }
+  if (/out of memory|allocation|array buffer|heap/i.test(message)) {
     return 'This PDF is too large for the available memory. Try a smaller file or a desktop browser.';
   }
   return message || 'Something went wrong while reading the PDF. Try another file.';

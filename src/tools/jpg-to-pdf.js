@@ -1,4 +1,5 @@
 import { icon } from '../icons.js';
+import { layoutPage } from '../lib/layout.js';
 import {
   attachDragSort,
   canvasToBlob,
@@ -13,12 +14,6 @@ import {
   toast,
   withBusy,
 } from '../ui.js';
-
-const PAGE_SIZES = {
-  a4: [595.28, 841.89],
-  letter: [612, 792],
-  fit: null,
-};
 
 const MARGINS = { none: 0, small: 18, medium: 36 };
 
@@ -60,39 +55,6 @@ const IMAGE_ERRORS = {
 };
 
 
-function layoutPage(sizeKey, orientation, imageWidth, imageHeight, margin) {
-  const widthPt = imageWidth * 0.75;
-  const heightPt = imageHeight * 0.75;
-
-  let pageWidth;
-  let pageHeight;
-  if (sizeKey === 'fit') {
-    pageWidth = widthPt + margin * 2;
-    pageHeight = heightPt + margin * 2;
-    return { pageWidth, pageHeight, drawWidth: widthPt, drawHeight: heightPt, x: margin, y: margin };
-  }
-
-  const [portraitW, portraitH] = PAGE_SIZES[sizeKey] || PAGE_SIZES.a4;
-  const landscape =
-    orientation === 'landscape' || (orientation === 'auto' && imageWidth > imageHeight);
-  pageWidth = landscape ? portraitH : portraitW;
-  pageHeight = landscape ? portraitW : portraitH;
-
-  const boxWidth = pageWidth - margin * 2;
-  const boxHeight = pageHeight - margin * 2;
-  const scale = Math.min(boxWidth / widthPt, boxHeight / heightPt);
-  const drawWidth = widthPt * scale;
-  const drawHeight = heightPt * scale;
-
-  return {
-    pageWidth,
-    pageHeight,
-    drawWidth,
-    drawHeight,
-    x: (pageWidth - drawWidth) / 2,
-    y: (pageHeight - drawHeight) / 2,
-  };
-}
 
 export function mount(root) {
   root.innerHTML = `
@@ -317,7 +279,9 @@ export function mount(root) {
           toast('PDF created successfully.', 'success');
         } catch (error) {
           console.error(error);
-          const msg = error.message || 'The PDF could not be created. Try fewer or smaller images.';
+          const msg = /memory|allocation|array buffer/i.test(String(error?.message))
+            ? 'Your device ran out of memory. Try fewer or smaller images, close other tabs, or use a desktop browser.'
+            : error.message || 'The PDF could not be created. Try fewer or smaller images.';
           setStatus(status, msg, 'error');
           toast(msg, 'error');
         } finally {

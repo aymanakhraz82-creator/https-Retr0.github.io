@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48" role="img" aria-labelledby="uft-mark-title">
+  <title id="uft-mark-title">Ultimate Free Tool</title>
+  <defs>
+    <radialGradient id="halo1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#33456f" stop-opacity="0.55"/>
+      <stop offset="58%" stop-color="#243358" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#141d33" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="halo2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#44608f" stop-opacity="0.42"/>
+      <stop offset="100%" stop-color="#1b2744" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="moon" x1="18" y1="17" x2="31" y2="32" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#f8d5a6"/>
+      <stop offset="100%" stop-color="#eab171"/>
+    </linearGradient>
+    <mask id="crescent">
+      <rect width="48" height="48" fill="#000"/>
+      <circle cx="23.2" cy="24" r="7.1" fill="#fff"/>
+      <circle cx="28.2" cy="20.4" r="6.1" fill="#000"/>
+    </mask>
+  </defs>
+
+  <circle cx="24" cy="24" r="23" fill="url(#halo1)"/>
+  <circle cx="24" cy="24" r="16.5" fill="url(#halo2)"/>
+
+  <ellipse cx="24" cy="24" rx="20" ry="13.5" fill="none" stroke="#7fa3ff" stroke-opacity="0.55" stroke-width="1.1" transform="rotate(-22 24 24)"/>
+
+  <rect width="48" height="48" fill="url(#moon)" mask="url(#crescent)"/>
+
+  <circle cx="42.5" cy="16.5" r="1.9" fill="#5fd1c4"/>
+  <circle cx="13.1" cy="37.8" r="1.9" fill="#ff8f7a"/>
+  <circle cx="9.2" cy="18" r="1.9" fill="#b49cff"/>
+</svg>

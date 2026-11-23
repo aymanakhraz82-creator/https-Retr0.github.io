@@ -40,7 +40,8 @@ export const pages = {
         h: 'How the site is funded',
         body: [
           'The site is supported by a small number of clearly labelled ad slots — one below the header, one in the sidebar on desktop, and one below each tool. They are reserved spaces so the page does not jump around while an ad loads, and they never cover the button you are trying to press.',
-          'There is no paid tier, no affiliate-driven ranking and no sponsored tool. If an ad slot is empty, the space simply stays reserved and labelled.',
+          'A page may also show a “Recommended tools” box with affiliate links. When it does, the box is labelled “Sponsored”, states that we may earn a commission at no extra cost to you, and marks every link rel="sponsored". Those links never affect which tools exist here, how they are ordered, or what they cost — every tool on this site is free and none is sponsored.',
+          'There is no paid tier and no affiliate-driven ranking. If an ad slot is empty, the space simply stays reserved and labelled.',
         ],
       },
       {
@@ -53,7 +54,7 @@ export const pages = {
       {
         h: 'Suggestions and bugs',
         body: [
-          'The project is open source and the issue tracker is the best place to report a broken file or ask for a tool. If a PDF fails, mention the app that created it and roughly how large it is — that is usually enough to reproduce the problem.',
+          'The project is open source under the AGPL-3.0 licence, and the source code link in the footer goes to the public repository. The issue tracker is the best place to report a broken file or ask for a tool. If a PDF fails, mention the app that created it and roughly how large it is — that is usually enough to reproduce the problem.',
         ],
       },
     ],
@@ -127,6 +128,12 @@ export const pages = {
         h: '9. Changes to this policy',
         body: [
           'If the site starts using a new third-party service, this page will be updated before that change takes effect, and the date at the top will change. Continuing to use the site after an update means you accept the revised policy.',
+        ],
+      },
+      {
+        h: '10. Donations',
+        body: [
+          'Donations are handled by PayPal, a third party. We do not receive or store your payment details.',
         ],
       },
     ],
@@ -221,7 +228,7 @@ export const pages = {
       'Get in touch about Ultimate Free Tool: report a file that would not process, request a new tool, or ask a privacy question through the GitHub issue tracker.',
     h1: 'Contact',
     lead:
-      'Questions, bug reports and tool requests are welcome. Because there is no backend, the issue tracker is the fastest way to reach the project.',
+      'Questions, bug reports and tool requests are welcome. Use the public issue tracker, or email us if you would rather not open a GitHub account.',
     updated: 'November 2026',
     contactCard: true,
     sections: [

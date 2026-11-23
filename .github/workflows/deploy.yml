@@ -17,9 +17,10 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  # Optional. Set a repository variable named CUSTOM_DOMAIN
-  # (Settings → Secrets and variables → Actions → Variables) to publish on a
-  # custom domain without editing code. Leave it unset for the project URL.
+  # GitHub Pages serves this repository from /https-Retr0.github.io/, so the
+  # canonical URL, sitemap and Vite base must all use that path — not "/".
+  # CUSTOM_DOMAIN (a repository variable) still wins when set.
+  PUBLIC_BASE_URL: https://aymanakhraz82-creator.github.io/https-Retr0.github.io
   CUSTOM_DOMAIN: ${{ vars.CUSTOM_DOMAIN }}
 
 jobs:

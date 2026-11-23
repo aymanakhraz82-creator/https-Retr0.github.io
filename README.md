@@ -100,18 +100,25 @@ No secrets or tokens are needed: the workflow uses the short-lived `GITHUB_TOKEN
 
 ### 2. Set the deployment URL once
 
-Open `tools.config.js` and check the `deployment` block:
+Open `tools.config.js` and check `SITE_URL`:
 
 ```js
 const PROJECT_URL = 'https://<user>.github.io/<repo>';
-const customDomain = '';
+const DEPLOY_URL = 'https://<live-origin>';
 ```
 
-- **Project URL (default):** leave `customDomain` empty. The base path becomes `/<repo>/`, and canonical links, Open Graph URLs, `sitemap.xml` and `robots.txt` use the project URL. No `CNAME` is published.
-- **Custom domain:** set `customDomain = 'tools.example.com'` (or set a `CUSTOM_DOMAIN` repository variable). The base path becomes `/`, URLs use `https://tools.example.com`, and the build writes `dist/CNAME`.
-- **Forking:** change `PROJECT_URL` to your own Pages address.
+- **`SITE_URL` (default):** every build targets `DEPLOY_URL`. Its pathname sets the Vite base path, so a root deployment gets `/` and a GitHub Pages project URL gets `/<repo>/`. Canonical links, Open Graph URLs, `twitter:image`, `sitemap.xml` and `robots.txt` all come from this one value. No `CNAME` is published.
+- **Other environments:** `PUBLIC_BASE_URL=https://example.com npm run build` overrides it without editing the file. The GitHub Pages workflow sets it to `https://<user>.github.io/<repo>` so the deployed site builds with the right `/<repo>/` base path.
+- **Custom domain:** set `CUSTOM_DOMAIN=tools.example.com` (or a repository variable of the same name). URLs use `https://tools.example.com`, it takes precedence over `PUBLIC_BASE_URL`, and the build writes `dist/CNAME`.
+- **Forking:** change `PROJECT_URL` and `DEPLOY_URL` to your own addresses.
 
-This one switch drives the Vite `base`, internal links, canonical/OG tags, sitemap, robots and CNAME, so they cannot drift apart. `npm run dev` always serves from `/`.
+This single origin drives the Vite `base`, internal links, canonical/OG tags, sitemap, robots and CNAME, so they cannot drift apart. `npm run dev` always serves from `/`.
+
+### Affiliate links, contact email and tests
+
+- **Affiliate links:** `src/config/affiliates.js` holds the invoice page's recommended-tools entries. While `enabled` is `false` — or any `href` is empty, `example.com` or not `https://` — the section is not rendered at all. Rendered links use `rel="sponsored noopener"` and a visible disclosure.
+- **Contact email:** set `PUBLIC_CONTACT_EMAIL` (or `site.contactEmail`) to publish a `mailto:` option next to the issue tracker. While empty, only the issue tracker is shown so no dead email link ships.
+- **Tests:** `npm test` runs the Vitest suite for the pure logic (page ranges, compression verdict, PDF layout, page organisation, QR payloads, invoice totals and wrapping, upload validation).
 
 ### 3. Enable Pages
 

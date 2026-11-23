@@ -1,5 +1,6 @@
 import { icon } from '../icons.js';
-import { openWithPdfjs } from '../lib/pdf.js';
+import { hasKeptPages, keptCount, moveBy, normalizeRotation, restorePages } from '../lib/organize.js';
+import { closePdfjs, openWithPdfjs } from '../lib/pdf.js';
 import {
   attachDragSort,
   createDropzone,
@@ -36,10 +37,7 @@ export function mount(root) {
 
         <div class="flex flex-wrap items-center justify-between gap-2">
           <p class="text-xs text-muted" data-summary></p>
-          <div class="flex flex-wrap gap-2">
-            <button type="button" class="btn btn-secondary btn-sm" data-restore>Reset changes</button>
-            <button type="button" class="btn btn-primary btn-sm" data-save>Save PDF</button>
-          </div>
+          <button type="button" class="btn btn-secondary btn-sm" data-restore>Reset changes</button>
         </div>
 
         <ul class="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4" data-grid></ul>
@@ -86,11 +84,11 @@ export function mount(root) {
 
   function updateSummary() {
     if (!state) return;
-    const kept = state.pages.filter((page) => !page.deleted).length;
+    const kept = keptCount(state.pages);
     const removed = state.pages.length - kept;
-    summary.textContent = `${kept} of ${state.pages.length} pages kept${removed ? ` · ${removed} removed` : ''}`;
+    summary.textContent = `${kept} of ${state.pages.length} pages kept${removed ? ` · ${removed} removed` : ''}${kept ? '' : ' — keep at least one page to save'}`;
     saveButtons.forEach((button) => {
-      button.disabled = kept === 0 || busy;
+      button.disabled = !hasKeptPages(state.pages) || busy;
     });
     state.pages.forEach((page) => {
       page.card.classList.toggle('opacity-45', page.deleted);
@@ -178,7 +176,7 @@ export function mount(root) {
         if (pageNumber % 4 === 0) await new Promise((resolve) => setTimeout(resolve, 0));
       }
 
-      await pdf.destroy();
+      await closePdfjs(pdf);
       metaEl.textContent = `${totalPages} page${totalPages === 1 ? '' : 's'} · ${formatBytes(file.size)}`;
       updateSummary();
       setStatus(status, 'Make your changes, then save a new copy.');
@@ -237,23 +235,19 @@ export function mount(root) {
 
     if (button.hasAttribute('data-delete')) {
       record.deleted = !record.deleted;
-      if (record.deleted) record.rotation = record.rotation % 360;
+      if (record.deleted) record.rotation = normalizeRotation(record.rotation);
       updateSummary();
       return;
     }
 
     if (button.hasAttribute('data-rotate')) {
-      const delta = Number(button.getAttribute('data-rotate'));
-      record.rotation = ((record.rotation + delta) % 360 + 360) % 360;
+      record.rotation = normalizeRotation(record.rotation, button.getAttribute('data-rotate'));
       updateSummary();
       return;
     }
 
     if (button.hasAttribute('data-move')) {
-      const index = state.pages.indexOf(record);
-      const next = index + Number(button.getAttribute('data-move'));
-      if (next < 0 || next >= state.pages.length) return;
-      [state.pages[index], state.pages[next]] = [state.pages[next], state.pages[index]];
+      moveBy(state.pages, state.pages.indexOf(record), button.getAttribute('data-move'));
       syncOrder();
     }
   });
@@ -276,11 +270,7 @@ export function mount(root) {
 
   root.querySelector('[data-restore]').addEventListener('click', () => {
     if (!state) return;
-    state.pages.sort((a, b) => a.sourceIndex - b.sourceIndex);
-    state.pages.forEach((page) => {
-      page.rotation = 0;
-      page.deleted = false;
-    });
+    state.pages = restorePages(state.pages);
     syncOrder();
     result.innerHTML = '';
     lastBlob = null;
@@ -291,8 +281,8 @@ export function mount(root) {
     button.addEventListener('click', () => {
       if (!state || busy) return;
       const kept = state.pages.filter((page) => !page.deleted);
-      if (!kept.length) {
-        setStatus(status, 'Keep at least one page before saving.', 'error');
+      if (!hasKeptPages(state.pages)) {
+        setStatus(status, 'Every page is deleted, so there is nothing to save. Restore at least one page first.', 'error');
         return;
       }
       result.innerHTML = '';

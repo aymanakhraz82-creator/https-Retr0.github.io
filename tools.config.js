@@ -10,33 +10,43 @@
 /**
  * Deployment — the single switch.
  *
- * Leave `customDomain` empty for a GitHub Pages project URL:
- *   https://<user>.github.io/<repo>/   → base path /<repo>/
- * Set it to a domain to publish at the root:
- *   https://tools.example.com/          → base path /
+ * `DEPLOY_URL` is the live origin the site is built for. Canonical links,
+ * Open Graph URLs, `sitemap.xml`, `robots.txt` and the Vite base path all come
+ * from it, so they can never disagree with the address bar.
  *
- * The Vite base path, canonical links, Open Graph URLs, sitemap, robots.txt
- * and the dist/CNAME file are all derived from these two values, so they can
- * never disagree. In GitHub Actions you can also set a CUSTOM_DOMAIN
- * repository variable to override `customDomain` without editing code.
+ * Override it per environment without editing this file:
+ *   PUBLIC_BASE_URL=https://example.com/ npm run build
  *
- * If you fork this repository, change PROJECT_URL to your own Pages URL.
+ * For GitHub Pages with a custom domain, set CUSTOM_DOMAIN: it is used for the
+ * URLs above and written to dist/CNAME. Leave it unset for a deployment at the
+ * site root, which is what DEPLOY_URL expects.
+ *
+ * If you fork this repository, change PROJECT_URL and DEPLOY_URL.
  */
 const PROJECT_URL = 'https://aymanakhraz82-creator.github.io/https-Retr0.github.io';
+const DEPLOY_URL = 'https://https-retr0-github-io-vkph5o.freebuff.site';
 
-const customDomain = String(process.env.CUSTOM_DOMAIN || '')
-  .trim()
-  .toLowerCase()
-  .replace(/^https?:\/\//, '')
-  .replace(/\/.*$/, '');
+const customDomain = (process.env.CUSTOM_DOMAIN || '').trim();
+const publicBaseUrl = (process.env.PUBLIC_BASE_URL || '').trim();
 
-const projectPath = new URL(PROJECT_URL).pathname.replace(/\/+$/, '');
+/**
+ * SITE_URL — the one value every canonical tag, Open Graph URL, sitemap entry
+ * and robots.txt line is built from. Change it here (or with PUBLIC_BASE_URL /
+ * CUSTOM_DOMAIN) and the whole site follows, including the Vite base path.
+ */
+export const SITE_URL = (
+  customDomain ? `https://${customDomain}` : publicBaseUrl || DEPLOY_URL
+).replace(/\/+$/, '');
+
+// Derived from the URL: "https://host/" -> "/", a project URL -> "/<repo>/".
+const basePath = `${new URL(SITE_URL).pathname.replace(/\/+$/, '')}/`;
 
 export const deployment = {
   projectUrl: PROJECT_URL,
   customDomain,
-  baseUrl: customDomain ? `https://${customDomain}` : PROJECT_URL,
-  basePath: customDomain ? '/' : `${projectPath}/`,
+  siteUrl: SITE_URL,
+  baseUrl: SITE_URL,
+  basePath,
 };
 
 export const site = {
@@ -51,7 +61,17 @@ export const site = {
   customDomain: deployment.customDomain,
   ogImage: 'og-image.jpg',
   repoUrl: 'https://github.com/aymanakhraz82-creator/https-Retr0.github.io',
+  license: 'AGPL-3.0',
+  licenseUrl: 'https://github.com/aymanakhraz82-creator/https-Retr0.github.io/blob/main/LICENSE',
+  issuesUrl: 'https://github.com/aymanakhraz82-creator/https-Retr0.github.io/issues',
   contactUrl: 'https://github.com/aymanakhraz82-creator/https-Retr0.github.io/issues/new',
+  // Plain email shown as a second contact option. Set PUBLIC_CONTACT_EMAIL (or
+  // paste an address here) to publish it; while empty, only the issue tracker
+  // is offered so no dead mailto: link is ever shipped.
+  contactEmail: (process.env.PUBLIC_CONTACT_EMAIL || '').trim(),
+  // Donation link — the one place to change it. Rendered as a plain anchor in
+  // the footer and on the About page: no embed, script, image or tracker.
+  donateUrl: 'https://paypal.me/AymanAkhraz',
   launchYear: 2026,
 };
 
@@ -393,6 +413,7 @@ export const tools = [
       'Paste from clipboard, drag and drop, or browse',
       'Download progress for the model on first use',
     ],
+    offline: 'Works offline only after the AI model has been downloaded once.',
     faqs: [
       {
         q: 'Why does the first background removal take so long?',
@@ -519,7 +540,7 @@ export const tools = [
       },
       {
         q: 'Is this invoice generator really free?',
-        a: 'Yes. There is no account, no watermark and no export limit. The site is supported by the labelled ad slots around the tool and by disclosed affiliate links in the recommended-tools section.',
+        a: 'Yes. There is no account, no watermark and no export limit. The site is funded by the labelled ad slots around the tool; if a recommended-tools section with affiliate links appears on this page, it is marked as sponsored and the disclosure sits directly above the links.',
       },
       {
         q: 'Where is my invoice data stored?',
@@ -539,26 +560,6 @@ export const tools = [
       },
     ],
     related: ['qr-code-generator', 'jpg-to-pdf', 'merge-pdf'],
-    recommended: [
-      {
-        name: 'Invoicing app',
-        category: 'Invoicing',
-        description: 'Send branded invoices, automatic reminders and payment links from one dashboard.',
-        href: 'https://example.com/invoicing-affiliate',
-      },
-      {
-        name: 'Small-business accounting',
-        category: 'Accounting',
-        description: 'Track expenses, reconcile accounts and produce reports your accountant can use.',
-        href: 'https://example.com/accounting-affiliate',
-      },
-      {
-        name: 'Online payments',
-        category: 'Payments',
-        description: 'Accept cards and bank transfers with a hosted checkout or a simple payment link.',
-        href: 'https://example.com/payments-affiliate',
-      },
-    ],
   },
 ];
 
@@ -566,7 +567,7 @@ export const tools = [
 export const homeFaqs = [
   {
     q: 'Are these tools really free?',
-    a: 'Yes. Every tool is free to use with no sign-up, watermark or daily limit. The site is supported by clearly labelled ad slots and nothing else.',
+    a: 'Yes. Every tool is free to use with no sign-up, watermark or daily limit. The site is funded by clearly labelled ad slots. Any affiliate links are disclosed where they appear and never change which tools are listed or how they rank.',
   },
   {
     q: 'Do I need to upload my files?',

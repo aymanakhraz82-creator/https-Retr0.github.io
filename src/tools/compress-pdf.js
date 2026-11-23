@@ -1,4 +1,5 @@
 import { icon } from '../icons.js';
+import { compressionVerdict } from '../lib/compression.js';
 import { pdfjsLib } from '../lib/pdf.js';
 import {
   canvasToBlob,
@@ -23,11 +24,7 @@ const LEVELS = {
 export function mount(root) {
   root.innerHTML = `
     <div class="space-y-4">
-      <div data-drop role="button" tabindex="0" aria-label="Choose a file, or drag and drop it here">
-        <span class="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft text-brand">${icon('compress', 'h-5 w-5')}</span>
-        <p class="dropzone-title">Drop a large PDF here, or <span class="browse">browse</span></p>
-        <p class="hint">PDF only · up to ${LIMITS.pdfMB} MB</p>
-      </div>
+      <div data-drop></div>
 
       <section class="hidden space-y-4" data-panel>
         <div class="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface-2/40 p-3">
@@ -168,20 +165,29 @@ export function mount(root) {
           progress.set(100, 'Finishing the PDF…');
           const bytes = await out.save({ useObjectStreams: true });
           const blob = new Blob([bytes], { type: 'application/pdf' });
-          lastName = outputName(state.file.name, 'compressed');
-          download(blob, lastName);
+          const verdict = compressionVerdict(state.file.size, blob.size);
 
-          const saved = state.file.size - blob.size;
-          const percent = state.file.size ? Math.round((saved / state.file.size) * 100) : 0;
-          showResult(blob, saved, percent);
+          // Never hand back a file that is larger than the original: the copy
+          // would only lose the text layer and gain nothing.
+          if (verdict.smaller) {
+            lastName = outputName(state.file.name, 'compressed');
+            download(blob, lastName);
+          }
+
+          showResult(blob, verdict);
           setStatus(
             status,
-            saved > 0
-              ? `Done — ${percent}% smaller. Text is no longer selectable in this copy.`
-              : 'This PDF could not be made smaller without losing more detail. Keep the original.',
-            saved > 0 ? 'success' : 'error',
+            verdict.smaller
+              ? `Done — ${verdict.percent}% smaller. Text is no longer selectable in this copy.`
+              : 'This PDF could not be made smaller without losing more detail. Nothing was downloaded — keep the original.',
+            verdict.smaller ? 'success' : 'error',
           );
-          toast(saved > 0 ? `PDF compressed — ${percent}% smaller.` : 'This PDF could not be made smaller without losing more detail.', saved > 0 ? 'success' : 'error');
+          toast(
+            verdict.smaller
+              ? `PDF compressed — ${verdict.percent}% smaller.`
+              : 'No size saving, so nothing was downloaded. Keep the original file.',
+            verdict.smaller ? 'success' : 'error',
+          );
         } catch (error) {
           console.error(error);
           setStatus(status, friendlyPdfError(error), 'error');
@@ -195,22 +201,22 @@ export function mount(root) {
     );
   });
 
-  function showResult(blob, saved, percent) {
-    lastBlob = blob;
-    const smaller = saved > 0;
+  function showResult(blob, verdict) {
+    const smaller = verdict.smaller;
+    lastBlob = smaller ? blob : null;
     result.innerHTML = `<div class="space-y-3 rounded-xl border ${smaller ? 'border-accent/30 bg-accent-soft' : 'border-warn/30 bg-warn-soft'} p-4">
       <div class="flex items-center justify-between gap-3">
         <div>
           <p class="flex items-center gap-1.5 text-sm font-semibold ${smaller ? 'text-accent' : 'text-warn'}">
-            ${icon(smaller ? 'check' : 'spark', 'h-4 w-4')} ${smaller ? 'Smaller PDF ready' : 'No size saving'}
+            ${icon(smaller ? 'check' : 'spark', 'h-4 w-4')} ${smaller ? 'Smaller PDF ready' : 'No size saving — not downloaded'}
           </p>
-          <p class="text-xs ${smaller ? 'text-accent' : 'text-warn'}">${formatBytes(state.file.size)} → ${formatBytes(blob.size)}${smaller ? ` (${percent}% smaller)` : ''}</p>
+          <p class="text-xs ${smaller ? 'text-accent' : 'text-warn'}">${formatBytes(state.file.size)} → ${formatBytes(blob.size)}${smaller ? ` (${verdict.percent}% smaller)` : ''}</p>
         </div>
-        <button type="button" class="btn btn-secondary btn-sm shrink-0" data-download>${icon('download', 'h-4 w-4')} Download</button>
+        ${smaller ? `<button type="button" class="btn btn-secondary btn-sm shrink-0" data-download>${icon('download', 'h-4 w-4')} Download</button>` : ''}
       </div>
-      <p class="text-xs leading-relaxed ${smaller ? 'text-accent' : 'text-warn'}">${smaller ? 'Images and text are now one flat image per page.' : 'The original is already compressed. The re-rendered copy is larger, so keeping the original is better.'}</p>
+      <p class="text-xs leading-relaxed ${smaller ? 'text-accent' : 'text-warn'}">${smaller ? 'Images and text are now one flat image per page.' : 'The original is already compressed. The re-rendered copy is larger, so nothing was downloaded — keeping the original is better.'}</p>
     </div>`;
-    result.querySelector('[data-download]').addEventListener('click', () => download(lastBlob, lastName));
+    result.querySelector('[data-download]')?.addEventListener('click', () => download(lastBlob, lastName));
   }
 
   setStatus(status, '');

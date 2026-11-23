@@ -48,15 +48,11 @@ export function icon(name, classes = 'h-6 w-6') {
   return `<svg class="${classes}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">${body}</svg>`;
 }
 
-/** The brand mark: a rounded tile with a stacked-tools glyph. */
-export function brandMark(classes = 'h-9 w-9') {
-  return `<svg class="${classes}" viewBox="0 0 40 40" aria-hidden="true" focusable="false">
-    <rect width="40" height="40" rx="11" fill="url(#uft-gradient)"/>
-    <defs><linearGradient id="uft-gradient" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#6366f1"/><stop offset="1" stop-color="#0d9488"/>
-    </linearGradient></defs>
-    <path d="M12 12.5h10.5a4 4 0 0 1 0 8H15" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
-    <path d="M20.5 24.5v5M16 26.5h9" stroke="#fff" stroke-width="2.6" stroke-linecap="round"/>
-    <circle cx="27.5" cy="27" r="2.1" fill="#fff"/>
-  </svg>`;
+/**
+ * The brand mark: an amber crescent moon inside night-blue halos, with a
+ * thin tilted orbit ring carrying three small dots. Served as a file so the
+ * gradient/mask ids stay unique when the mark appears more than once per page.
+ */
+export function brandMark(classes = 'h-8 w-8') {
+  return `<img class="brand-mark ${classes}" src="%BASE_URL%logo-mark.svg" alt="" width="32" height="32" decoding="async">`;
 }

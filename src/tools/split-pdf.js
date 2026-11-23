@@ -16,11 +16,7 @@ import {
 export function mount(root) {
   root.innerHTML = `
     <div class="space-y-4">
-      <div data-drop role="button" tabindex="0" aria-label="Choose a file, or drag and drop it here">
-        <span class="flex h-11 w-11 items-center justify-center rounded-full bg-brand-soft text-brand">${icon('split', 'h-5 w-5')}</span>
-        <p class="dropzone-title">Drop a PDF here, or <span class="browse">browse</span></p>
-        <p class="hint">PDF only · up to ${LIMITS.pdfMB} MB</p>
-      </div>
+      <div data-drop></div>
 
       <section class="hidden space-y-4" data-panel aria-labelledby="split-file-heading">
         <div class="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-surface-2/40 p-3">
